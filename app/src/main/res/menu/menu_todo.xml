@@ -7,11 +7,6 @@
           android:orderInCategory="100"
           app:showAsAction="ifRoom" />
 
-    <item android:id="@+id/menuSort"
-          app:showAsAction="ifRoom"
-          android:orderInCategory="90"
-          android:actionLayout="@layout/action_sort"
-          android:title="Sort"/>
 
     <item android:id="@+id/menuToggle"
           app:showAsAction="ifRoom"
