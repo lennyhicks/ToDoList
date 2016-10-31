@@ -1,19 +1,12 @@
 package inburst.todolist;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-
-        import android.content.ContentValues;
-        import android.content.Context;
-        import android.database.Cursor;
-        import android.database.sqlite.SQLiteDatabase;
-        import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -62,12 +55,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TODO);
-
-        // Create tables again
         onCreate(db);
     }
 
-    // Adding new contact
     void addToDo(ToDo toDo) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -94,7 +84,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         db.close(); // Closing database connection
     }
 
-    // Getting single contact
+
     ToDo getToDo(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -105,42 +95,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
             cursor.moveToFirst();
 
         ToDo toDo = new ToDo(cursor.getString(0), cursor.getString(1), Boolean.parseBoolean(cursor.getString(2)), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7), cursor.getString(8), cursor.getString(9));
-        // return contact
+
         return toDo;
     }
-//    public Cursor searchCustomer(String inputText) throws SQLException {
-//
-//        String query = "SELECT docid as _id," +
-//                KEY_CUSTOMER + "," +
-//                KEY_NAME + "," +
-//                "(" + KEY_ADDRESS1 + "||" +
-//                "(case when " + KEY_ADDRESS2 +  "> '' then '\n' || " + KEY_ADDRESS2 + " else '' end)) as " +  KEY_ADDRESS +"," +
-//                KEY_ADDRESS1 + "," +
-//                KEY_ADDRESS2 + "," +
-//                KEY_CITY + "," +
-//                KEY_STATE + "," +
-//                KEY_ZIP +
-//                " from " + FTS_VIRTUAL_TABLE +
-//                " where " +  KEY_SEARCH + " MATCH '" + inputText + "';";
-//        Log.w(TAG, query);
-//        Cursor mCursor = mDb.rawQuery(query,null);
-//
-//        if (mCursor != null) {
-//            mCursor.moveToFirst();
-//        }
-//        return mCursor;
-//
-//    }
-    // Getting All Contacts
-    public ArrayList<ToDo> getAllToDos() {
-        ArrayList<ToDo> toDoList = new ArrayList<ToDo>();
-        // Select All Query
-        String selectQuery = "SELECT  * FROM " + TABLE_TODO;
 
+    public ArrayList<ToDo> getAllToDos() {
+        ArrayList<ToDo> toDoList = new ArrayList<>();
+        String selectQuery = "SELECT  * FROM " + TABLE_TODO;
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
-
-        // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
                 ToDo toDo = new ToDo();
@@ -149,7 +112,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
                 if(cursor.getString(2).equals("true")) {
                     toDo.setDone(true);
                 }else{
-                    Log.i("Failing", toDo.getDone()+"");
                     toDo.setDone(false);
                 }
                 toDo.setDueDate(cursor.getString(3));
@@ -166,7 +128,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         }
 
         // return to do list
+        cursor.close();
         return toDoList;
+
     }
 
     // Updating single to Do
@@ -176,7 +140,11 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(KEY_ID, toDo.getKey());
         values.put(KEY_CATEGORY, toDo.getCategory());
-        values.put(KEY_DONE, toDo.getDone().toString());
+        if (toDo.getDone() != null) {
+            values.put(KEY_DONE, toDo.getDone().toString());
+        } else {
+            values.put(KEY_DONE, "false");
+        }
         values.put(KEY_DUEDATE, toDo.getDueDate());
         values.put(KEY_TITLE, toDo.getTitle());
         values.put(KEY_PRIOROITY, toDo.getPriority());
@@ -184,7 +152,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(KEY_NOTES, toDo.getNotes());
         values.put(KEY_PHOTO, toDo.getPhoto());
         values.put(KEY_TIME, toDo.getTime());
-        Log.i("UPDATED", values.toString());
         // updating row
         return db.update(TABLE_TODO, values, KEY_ID + " = ?",
                 new String[] { toDo.getKey() });

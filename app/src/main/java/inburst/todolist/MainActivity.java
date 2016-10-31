@@ -1,41 +1,39 @@
 package inburst.todolist;
 
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
-import android.support.v4.view.MenuItemCompat;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
-
+import android.widget.Switch;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity {
 
     private ToDoAdapter toDoArrayAdapter;
     public ListView toDoList;
-    ArrayList<ToDo> toDoArray = new ArrayList<>();
+    public static ArrayList<ToDo> toDoArray = new ArrayList<>();
     private SharedPreferences toDoPrefs;
     private DatabaseHandler db = new DatabaseHandler(MainActivity.this);
     private SearchView search;
     private ArrayList<ToDo> results = new ArrayList<>();
     private Boolean isSearch;
+    public static ArrayList<String> cats;
+    public static boolean showCompleted = true;
+    private Switch toggleCompleted;
 
 
     @Override
@@ -47,9 +45,10 @@ public class MainActivity extends AppCompatActivity {
         setupNotes();
 
         Collections.sort(toDoArray);
-
+        order();
         toDoList = (ListView) findViewById(R.id.listView);
         search = (SearchView) findViewById(R.id.searchBar);
+        toDoArray = sortAndAddSections(toDoArray);
 
         toDoArrayAdapter = new ToDoAdapter(this, R.layout.list_item, toDoArray);
         toDoList.setAdapter(toDoArrayAdapter);
@@ -72,14 +71,15 @@ public class MainActivity extends AppCompatActivity {
                     results = new ArrayList<>();
                     isSearch = true;
                     for (ToDo toDo : toDoArray) {
+                        if(!toDo.isSectionHeader()) {
+                            if (toDo.getTitle().toLowerCase().contains(search.getQuery().toString().toLowerCase())) {
 
-                        if (toDo.getTitle().toLowerCase().contains(search.getQuery().toString().toLowerCase())){
-
-                            results.add(results.size(), toDo);
-                            toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, results);
-                            toDoList.setAdapter(toDoArrayAdapter);
-                            toDoArrayAdapter.updateAdapter(results);
-                            toDoArrayAdapter.notifyDataSetChanged();
+                                results.add(results.size(), toDo);
+                                toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, results);
+                                toDoList.setAdapter(toDoArrayAdapter);
+                                toDoArrayAdapter.updateAdapter(results);
+                                toDoArrayAdapter.notifyDataSetChanged();
+                            }
                         }
                     }
                     if(results.size() == 0){
@@ -112,13 +112,14 @@ public class MainActivity extends AppCompatActivity {
                     isSearch = true;
 
                     for (ToDo toDo : toDoArray) {
-
-                        if (toDo.getTitle().toLowerCase().contains(search.getQuery().toString().toLowerCase())){
-                            results.add(results.size(), toDo);
-                            toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, results);
-                            toDoList.setAdapter(toDoArrayAdapter);
-                            toDoArrayAdapter.updateAdapter(results);
-                            toDoArrayAdapter.notifyDataSetChanged();
+                        if (!toDo.isSectionHeader()) {
+                            if (toDo.getTitle().toLowerCase().contains(search.getQuery().toString().toLowerCase())) {
+                                results.add(results.size(), toDo);
+                                toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, results);
+                                toDoList.setAdapter(toDoArrayAdapter);
+                                toDoArrayAdapter.updateAdapter(results);
+                                toDoArrayAdapter.notifyDataSetChanged();
+                            }
                         }
                     }
 
@@ -130,8 +131,10 @@ public class MainActivity extends AppCompatActivity {
                         toDoArrayAdapter.updateAdapter(results);
                         toDoArrayAdapter.notifyDataSetChanged();
 
+
                     }
                 }
+
                 return true;
             }
         });
@@ -163,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 for (ToDo toDo : toDoArray) {
 
-                                    if (search.getKey() == toDo.getKey()) {
+                                    if (search.getKey().equals(toDo.getKey())) {
                                         toDoArray.remove(toDo);
                                         db.deleteToDo(toDo);
                                     }
@@ -266,14 +269,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onSaveInstanceState(Bundle savedState) {
+
         for (ToDo toDo : toDoArray) {
             db.updateToDo(toDo);
         }
+        sortAndAddSections(toDoArray);
+
+
+        toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, toDoArray);
+        toDoList.setAdapter(toDoArrayAdapter);
+        toDoArrayAdapter.updateAdapter(toDoArray);
+        toDoArrayAdapter.notifyDataSetChanged();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        sortAndAddSections(toDoArray);
         if (resultCode == RESULT_OK) {
             int index = data.getIntExtra("Index", -1);
 
@@ -300,8 +312,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            toDoArrayAdapter.updateAdapter(toDoArray);
+            toDoArray = sortAndAddSections(toDoArray);
+
+
         }
+
+        toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, toDoArray);
+        toDoList.setAdapter(toDoArrayAdapter);
+        toDoArrayAdapter.updateAdapter(toDoArray);
+        toDoArrayAdapter.notifyDataSetChanged();
     }
 
 
@@ -332,7 +351,31 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         if (id == R.id.menuSort) {
+
             return true;
+        }
+        if (id == R.id.menuToggle) {
+            if (showCompleted) {
+                showCompleted = false;
+                ArrayList<ToDo> temp = showComplete(toDoArray);
+
+
+                toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, temp);
+                toDoList.setAdapter(toDoArrayAdapter);
+                toDoArrayAdapter.updateAdapter(temp);
+                toDoArrayAdapter.notifyDataSetChanged();
+
+
+            } else {
+                showCompleted = true;
+                toDoArray = sortAndAddSections(toDoArray);
+                toDoArrayAdapter = new ToDoAdapter(MainActivity.this, R.layout.list_item, toDoArray);
+                toDoList.setAdapter(toDoArrayAdapter);
+                toDoArrayAdapter.updateAdapter(toDoArray);
+                toDoArrayAdapter.notifyDataSetChanged();
+
+
+            }
         }
         return true;
     }
@@ -340,13 +383,104 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_todo, menu);
+        getMenuInflater().inflate(R.menu.menu_todo, menu);
 
 
             return true;
-
-
     }
+
+
+    private ArrayList sortAndAddSections(ArrayList<ToDo> toDoArray)
+    {
+        order();
+        Log.i("List", toDoArray.toString());
+        cats = new ArrayList<>();
+
+        ArrayList temps = new ArrayList();
+        ArrayList tempList = new ArrayList();
+        for (ToDo todo: toDoArray){
+            if (!todo.isSectionHeader()){
+                temps.add(todo);
+            }
+        }
+        toDoArray = temps;
+        //First we sort the array
+        Collections.sort(toDoArray);
+        String header = "";
+
+
+        for(int i = 0; i < toDoArray.size(); i++)
+        {
+
+            if(!header.equals(toDoArray.get(i).getCategory())){
+                     cats.add(toDoArray.get(i).getCategory());
+                     ToDo sectionCell = new ToDo(toDoArray.get(i).getCategory());
+                     sectionCell.setToSectionHeader();
+                     tempList.add(sectionCell);
+                     header = toDoArray.get(i).getCategory();
+
+
+            }
+            tempList.add(toDoArray.get(i));
+
+        }
+        cats.add("Add New");
+
+        return tempList;
+    }
+
+
+
+
+    private static void order() {
+
+        Collections.sort(toDoArray, new Comparator() {
+
+            public int compare(Object o1, Object o2) {
+
+                if (((ToDo) o2).getDueDate() != null) {
+                    String x1 = ((ToDo) o1).getCategory();
+
+                    String x2 = ((ToDo) o2).getCategory();
+
+
+                    int sComp = x1.compareTo(x2);
+
+                    if (sComp != 0) {
+                        return sComp;
+                    } else {
+                        x1 = ((ToDo) o1).getDueDate();
+
+                        x2 = ((ToDo) o2).getDueDate();
+
+                        return x1.compareTo(x2);
+                    }
+                }
+                else {return 0; }
+            }});
+    }
+
+public ArrayList showComplete(ArrayList<ToDo> toDos){
+    ArrayList<ToDo> temp = new ArrayList<>();
+
+
+    for(int i = 0; i < toDos.size(); i++) {
+        if (toDos.get(i).isSectionHeader()) {
+            toDos.remove(i);
+        }
+    }
+
+
+
+
+for(ToDo todo: toDos){
+    if (!todo.getDone()){
+        temp.add(todo);
+    }
+}
+    temp = sortAndAddSections(temp);
+
+    return temp;
+}
 
 }

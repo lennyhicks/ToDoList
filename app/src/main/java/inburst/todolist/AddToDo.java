@@ -11,9 +11,9 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -23,13 +23,11 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 /**
  * Created by lennyhicks on 10/26/16.
@@ -49,6 +47,7 @@ public class AddToDo extends Activity {
     private static int RESULT_LOAD_IMAGE = 1;
     private static String picturePath;
     private ImageView imageView;
+    private EditText addNew;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +64,9 @@ public class AddToDo extends Activity {
         isDone = (CheckBox) findViewById(R.id.isDone);
         lastModified = (TextView)findViewById(R.id.dateModified);
         setTime = (EditText)findViewById(R.id.setTime);
+        addNew = (EditText)findViewById(R.id.newCat);
 
         imageView = (ImageView) findViewById(R.id.imageView);
-        ArrayList<String> catArray = new ArrayList<>();
-        catArray.add(0, "What");
-        catArray.add(1, "a");
-        catArray.add(2, "asdsa");
 
         ArrayList<String> priorities = new ArrayList<>();
         priorities.add(0, "High");
@@ -82,7 +78,7 @@ public class AddToDo extends Activity {
         Intent intent = this.getIntent();
 
         ArrayAdapter spinnerArrayAdapter = new ArrayAdapter(this,
-                android.R.layout.simple_spinner_dropdown_item, catArray);
+                android.R.layout.simple_spinner_dropdown_item, MainActivity.cats);
         category.setAdapter(spinnerArrayAdapter);
 
 
@@ -99,7 +95,7 @@ public class AddToDo extends Activity {
         picturePath = intent.getStringExtra("photoDir");
         imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
         String compareValue = intent.getStringExtra("Category");
-        if (!compareValue.equals(null)) {
+        if (compareValue != null) {
             int spinnerPosition = spinnerArrayAdapter.getPosition(compareValue);
             category.setSelection(spinnerPosition);
         }
@@ -110,8 +106,20 @@ public class AddToDo extends Activity {
             category.setSelection(spinnerPosition);
         }
 
+        category.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                if (category.getSelectedItem().toString().equals("Add New")){
+                    addNew.setVisibility(View.VISIBLE);
+                }
+            }
 
-        index = intent.getIntExtra("Index", -1);
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+
+        });        index = intent.getIntExtra("Index", -1);
 
 
 
@@ -159,8 +167,6 @@ public class AddToDo extends Activity {
                 Calendar c = Calendar.getInstance();
                 System.out.println("Current time => "+c.getTime());
 
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
                 String dt;
                 Date cal = Calendar.getInstance().getTime();
                 dt = cal.toLocaleString();
@@ -174,13 +180,23 @@ public class AddToDo extends Activity {
                 intent.putExtra("lastModified", dt);
                 Log.i("Checked",  ""+isDone.isChecked());
                 intent.putExtra("Priority", priority.getSelectedItem().toString());
-                intent.putExtra("Category", category.getSelectedItem().toString());
+                if (category.getSelectedItem().toString().equals("Add New")){
+                    intent.putExtra("Category", addNew.getText().toString());
+                    addNew.setVisibility(View.INVISIBLE);
+                } else {
+                    intent.putExtra("Category", category.getSelectedItem().toString());
+                }
                 intent.putExtra("photoDir", picturePath);
                 intent.putExtra("dueTime", setTime.getText());
                 intent.putExtra("Index", index);
                 setResult(RESULT_OK, intent);
-
-                finish();
+                Log.i("TESTTTTTT", toDoDue.getText().toString());
+                if (!toDoDue.getText().toString().equals("")) {
+                    Log.i("TESTTTTTT", toDoDue.getText().toString());
+                    finish();
+                } else {
+                    Toast.makeText(AddToDo.this, "Please Enter a Due Date", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -205,7 +221,13 @@ public class AddToDo extends Activity {
 
         public void onDateSet(DatePicker view, int year, int month, int day) {
             // Do something with the date chosen by the user
-            toDoDue.setText(month+1 + "/" + day + "/" + year);
+            toDoDue.setText(pad(month+1) + "/" + pad(day) + "/" + year);
+        }
+        private static String pad(int c) {
+            if (c >= 10)
+                return String.valueOf(c);
+            else
+                return "0" + String.valueOf(c);
         }
     }
 

@@ -1,14 +1,10 @@
 package inburst.todolist;
 
-import android.content.Context;
-import android.widget.CheckBox;
-
 import com.google.gson.annotations.SerializedName;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -34,6 +30,8 @@ public class ToDo implements Comparable<ToDo> {
     @SerializedName("time")
     String time;
     private String key;
+    private boolean isSectionHeader;
+
 
 
     public ToDo(String title, String date, Boolean done, String priority, String lastModified, String notes, String category, String photo, String time) {
@@ -52,7 +50,11 @@ public class ToDo implements Comparable<ToDo> {
 
     }
 
-
+    public ToDo(String category)
+    {
+        this.category = category;
+        isSectionHeader = true;
+    }
     public ToDo(String key, String category, Boolean done, String dueDate, String title, String priority, String lastModified, String notes, String photo, String time) {
 
 
@@ -96,7 +98,16 @@ public class ToDo implements Comparable<ToDo> {
     }
 
     public String getDueDate() {
-        return dueDate;
+        if (!isSectionHeader()) {
+            String[] dates;
+            dates = dueDate.split("/");
+            dates[0] = pad(Integer.parseInt(dates[0]));
+            dates[1] = pad(Integer.parseInt(dates[1]));
+            dueDate = dates[0]+"/"+dates[1]+"/"+dates[2];
+
+            return dueDate;
+        }
+        else {return "0";}
     }
 
     public void setDueDate(String dueDate) {
@@ -151,6 +162,15 @@ public class ToDo implements Comparable<ToDo> {
         this.category = category;
     }
 
+    public void setToSectionHeader()
+    {
+        isSectionHeader = true;
+    }
+
+    public boolean isSectionHeader()
+    {
+        return isSectionHeader;
+    }
 
     public String toJSON(){
 
@@ -174,9 +194,20 @@ public class ToDo implements Comparable<ToDo> {
 
     }
 
+    private static String pad(int c) {
+        if (c >= 10)
+            return String.valueOf(c);
+        else
+            return "0" + String.valueOf(c);
+    }
+
     @Override
     public int compareTo(ToDo another) {
-        return another.getPriority().compareTo(getPriority());
-        //return getDate().compareTo(another.getDate());
+
+        //return another.getPriority().compareTo(getPriority());
+        return (getCategory().compareTo(another.getCategory()));
+        //return getDueDate().compareTo(another.getDueDate());
     }
+
+
 }

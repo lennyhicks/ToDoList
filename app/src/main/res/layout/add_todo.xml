@@ -9,14 +9,15 @@
         android:id="@+id/toDo_Title"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        android:hint="Title of Item"/>
+        android:hint="Title of Item"
+        android:layout_alignEnd="@+id/priority"/>
 
     <Spinner
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/category"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/toDo_Title"/>
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentStart="true"/>
 
     <EditText
         android:layout_width="wrap_content"
@@ -24,9 +25,10 @@
         android:inputType="time"
         android:ems="10"
         android:id="@+id/datePicker"
-        android:layout_alignParentEnd="true"
         android:hint="Select Due Date"
-        android:focusable="false"/>
+        android:focusable="false"
+        android:layout_above="@+id/toDo_Text"
+        android:layout_alignParentStart="true"/>
 
     <EditText
         android:layout_width="wrap_content"
@@ -34,8 +36,9 @@
         android:inputType="textMultiLine"
         android:ems="10"
         android:id="@+id/toDo_Text"
-        android:layout_below="@+id/category"
-        android:layout_toStartOf="@+id/saveButton"/>
+        android:layout_above="@+id/imageView"
+        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/saveButton"/>
 
     <Button
         android:layout_width="wrap_content"
@@ -49,15 +52,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/priority"
-        android:layout_above="@+id/toDo_Text"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignTop="@+id/setTime"
+        android:layout_alignEnd="@+id/saveButton"/>
 
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Is Complete?"
         android:id="@+id/isDone"
-        android:layout_alignTop="@+id/toDo_Text"
+        android:layout_above="@+id/datePicker"
         android:layout_alignParentStart="true"/>
 
     <TextView
@@ -80,22 +83,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/setTime"
-        android:layout_below="@+id/datePicker"
-        android:layout_alignStart="@+id/datePicker"
-        android:hint="Set Due Time"/>
+        android:hint="Set Due Time"
+        android:layout_alignTop="@+id/datePicker"
+        android:layout_alignEnd="@+id/saveButton"
+        android:layout_toEndOf="@+id/datePicker"/>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentEnd="false"
         android:id="@+id/frameLayout"
         android:layout_below="@+id/toDo_Text">
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:id="@+id/imageView"
-            android:layout_gravity="center"/>
     </FrameLayout>
 
     <Button
@@ -105,5 +104,39 @@
         android:id="@+id/addPhoto"
         android:layout_above="@+id/textView"
         android:layout_alignParentStart="true"/>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="375dp"
+        android:id="@+id/imageView"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_above="@+id/saveButton"
+        android:layout_alignParentStart="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:id="@+id/textView2"
+        android:layout_below="@+id/toDo_Title"
+        android:layout_alignParentStart="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Priority"
+        android:id="@+id/textView3"
+        android:layout_above="@+id/priority"
+        android:layout_alignEnd="@+id/priority"/>
+
+    <EditText
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/newCat"
+        android:hint="New Category"
+        android:visibility="invisible"
+        android:layout_alignBottom="@+id/category"
+        android:layout_alignParentEnd="true"/>
 
 </RelativeLayout>
