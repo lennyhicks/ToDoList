@@ -234,9 +234,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if (toDoPrefs.getBoolean("firstRun", true)) {
 
-            toDoArray.add(new ToDo("Note 1", "10/31/2016", false, "a", "a", "a", "a", null, null));
-            toDoArray.add(new ToDo("Note 2", "10/31/2016", true, "a", "a", "a", "a", null, null));
-            toDoArray.add(new ToDo("Note 3", "10/31/2016", false, "a", "a", "a", "a", null, null));
+            toDoArray.add(new ToDo("Try to Sleep", "10/31/2016", false, "a", "a", "a", "Personal", null, null));
+            toDoArray.add(new ToDo("Get Eggs", "10/31/2016", true, "a", "a", "a", "Groceries", null, null));
+            toDoArray.add(new ToDo("Check the car", "10/31/2016", false, "a", "a", "a", "Misc", null, null));
             writeTodos();
 
             SharedPreferences.Editor editor = toDoPrefs.edit();
@@ -350,10 +350,7 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 1);
             return true;
         }
-        if (id == R.id.menuSort) {
 
-            return true;
-        }
         if (id == R.id.menuToggle) {
             if (showCompleted) {
                 showCompleted = false;
